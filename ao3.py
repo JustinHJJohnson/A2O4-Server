@@ -15,6 +15,7 @@ fandom_map: dict[str, str] = {
     "Cyberpunk 2077 (Video Game)": "Cyberpunk 2077",
     "Persona 5": "Persona",
     "Persona 5 Royal": "Persona",
+    "Persona 5 Strikers": "Persona",
     "Persona 4": "Persona",
     "Persona 3": "Persona",
     "persona - Fandom": "Persona",
