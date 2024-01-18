@@ -33,9 +33,10 @@ class MySFTPClient(paramiko.SFTPClient):
                     self.put_dir(os.path.join(source, item), '%s/%s' % (target, item))
 
 config = toml.load(f"./config.toml")
+kindle = common.Device(**config["devices"][0])
 
 def construct_path_for_work(work: common.DB_Work) -> Path:
-    remote_path = Path(config['kindle_sorted_download_folder'])
+    remote_path = Path(kindle.sorted_download_folder)
     file_name = f"{work.title}.epub"
     if len(work.fandoms) > 1:
         remote_path = remote_path.joinpath("Multiple/Crossover")
@@ -48,7 +49,7 @@ def construct_path_for_work(work: common.DB_Work) -> Path:
     return remote_path
 
 def construct_path_for_series(series: common.DB_Series) -> Path:
-    remote_path = Path(config['kindle_sorted_download_folder'])
+    remote_path = Path(kindle.sorted_download_folder)
     if len(series.fandoms) > 1:
         remote_path = remote_path.joinpath("Multiple/Crossover")
     else:
@@ -57,8 +58,8 @@ def construct_path_for_series(series: common.DB_Series) -> Path:
     return remote_path
 
 def establish_sftp_connection() -> MySFTPClient:
-    transport = paramiko.Transport(('192.168.2.6', 2222))
-    transport.connect(username='root', password='')
+    transport = paramiko.Transport((kindle.ip, kindle.port))
+    transport.connect(username=kindle.username, password=kindle.password)
     return MySFTPClient.from_transport(transport)
 
 def make_dirs_if_not_exist(sftp: MySFTPClient, path: Path, series: bool = False) -> None:
@@ -88,7 +89,7 @@ def copy_single_work(local_path: Path, metadata: common.DB_Work) -> None:
     make_dirs_if_not_exist(sftp, remote_path)
     sftp.put(local_path.as_posix(), remote_path.as_posix())
     sftp.close()
-    sqlite.add_work_to_device(metadata.id, "Kindle")
+    sqlite.add_work_to_device(metadata.id, kindle.name)
     
 def copy_series(series_to_move: Path, metadata: common.DB_Series):
     remote_path = construct_path_for_series(metadata)
@@ -98,3 +99,4 @@ def copy_series(series_to_move: Path, metadata: common.DB_Series):
     make_dirs_if_not_exist(sftp, remote_path, True)
     sftp.put_dir(series_to_move.as_posix(), remote_path.as_posix())
     sftp.close()
+    #TODO add series to device sql

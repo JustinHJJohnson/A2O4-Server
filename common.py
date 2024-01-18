@@ -16,5 +16,15 @@ class DB_Work():
         self.parts = parts
         self.fandoms = fandoms
 
+class Device():
+    def __init__(self, name: str, ip: str, port: int, username: str, password: str, loose_download_folder: str, sorted_download_folder: str) -> None:
+        self.name = name
+        self.ip = ip
+        self.port = int(port)
+        self.username = username
+        self.password = password
+        self.loose_download_folder = loose_download_folder
+        self.sorted_download_folder = sorted_download_folder
+
 def sanitise_title(title: str) -> str:
-    return re.sub("\/", " ", title)
+    return re.sub("\\/", " ", title)
