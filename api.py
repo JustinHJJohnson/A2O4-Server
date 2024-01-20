@@ -1,4 +1,4 @@
-from flask import Flask, redirect, request, render_template
+from flask import Flask, request
 from flask_cors import CORS
 import re
 import sqlite
@@ -11,9 +11,7 @@ CORS(app)
 @app.route('/ao3Download', methods=['POST'])
 def download_work_or_series():
     if request.method == 'POST':
-        print(request)
-        print(request.form)
-        url = request.form['url']
+        url = request.json["url"]
         results = re.findall(r"(series|works)\/(\d{6,8})", url)[0]
         error = False
         if (len(results) != 2):

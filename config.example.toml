@@ -1,0 +1,25 @@
+#Where to store downloaded works on the local machine
+download_path = '../test/downloads'
+
+#Used to access bookmarks and restricted works
+ao3_username = "username"
+ao3_password = "password"
+
+#List of devices to send works to
+[[devices]]
+name = "Kindle"
+ip = "127.0.0.1"
+port = 22
+username = "root"
+password = "root"
+loose_download_folder = '/fanfics/unsorted'
+sorted_download_folder = '/fanfics/sorted'
+
+[[devices]]
+name = "Phone"
+ip = "127.0.0.2"
+port = 22
+username = "root"
+password = "root"
+loose_download_folder = '/fanfics/unsorted'
+sorted_download_folder = '/fanfics/sorted'
