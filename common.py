@@ -1,7 +1,7 @@
 import re
 
 class DB_Series():
-    def __init__(self, id: int, title: str, authors: list[str], fandoms: list[str]) -> None:
+    def __init__(self, id: int, title: str, authors: list[str], fandoms: list[str] = []) -> None:
         self.id = id
         self.title = title
         self.authors = authors
@@ -27,4 +27,5 @@ class Device():
         self.sorted_download_folder = sorted_download_folder
 
 def sanitise_title(title: str) -> str:
-    return re.sub("\\/", " ", title)
+    new_title = re.sub(r"/", " ", title)
+    return re.sub(r"[^-\w\s.]", "", new_title)
