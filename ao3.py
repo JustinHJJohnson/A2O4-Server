@@ -22,14 +22,18 @@ fandom_map: dict[str, str] = {
     "Persona Series": "Persona",
     "逆転裁判 | Gyakuten Saiban | Ace Attorney": "Ace Attorney",
     "大逆転裁判 | Dai Gyakuten Saiban | The Great Ace Attorney Chronicles (Video Games)": "Ace Attorney",
-    "NieR: Automata (Video Game)": "NieR"
+    "NieR: Automata (Video Game)": "NieR",
+    "Dungeons & Dragons (Roleplaying Game)": "Dungeons & Dragons",
+    "Shin Megami Tensei Series": "Shin Megami Tensei"
 }
 
 def map_and_filter_fandoms(fandoms: list[str]) -> list[str]:
     new_list = fandoms.copy()
-    if ("Baldur's Gate (Video Games)" in new_list and "Dungeons & Dragons (Roleplaying Game)" in new_list):
-        new_list.remove("Dungeons & Dragons (Roleplaying Game)")
     new_list = list(set(map(lambda fandom: fandom_map[fandom] if fandom in fandom_map else fandom, new_list)))
+    if ("Dungeons & Dragons" in new_list and "Baldur's Gate (Video Games)" in new_list):
+        new_list.remove("Dungeons & Dragons")
+    elif ("Shin Megami Tensei" in new_list and "Persona" in new_list):
+        new_list.remove("Shin Megami Tensei")
     
     return new_list
 
@@ -91,8 +95,11 @@ def download_series_and_sort(series: AO3.Series) -> tuple[Path, common.DB_Work]:
             print(f"\t{author.username}")
             authors.append(author.username)
         series_list: list[common.DB_Series] = []
+        series_index: int = 0
         for (work_series, part) in zip(work.series, work.metadata["parts_in_series"]):
-            if (work_series.name == series.name): continue
+            if (work_series.name != series.name): 
+                series_index = series_index + 1
+                continue
             print(f"\t{series.name} part {part}")
             series_authors: list[str] = []
             work_series.reload()
@@ -101,7 +108,7 @@ def download_series_and_sort(series: AO3.Series) -> tuple[Path, common.DB_Work]:
             series_list.append(common.DB_Series(work_series.id, work_series.name, series_authors))
         filtered_fandoms = map_and_filter_fandoms(work.metadata['fandoms'])
         fandoms.extend(filtered_fandoms)
-        work_download_path = download_path.joinpath(f"{work.metadata["parts_in_series"][0]} - {title}.epub")
+        work_download_path = download_path.joinpath(f"{work.metadata["parts_in_series"][series_index]} - {title}.epub")
         if (work_download_path.exists()):
             print(f"{work_download_path} exist, skipping")
         else:

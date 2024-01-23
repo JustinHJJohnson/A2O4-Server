@@ -39,7 +39,7 @@ def construct_path_for_work(work: common.DB_Work) -> Path:
     remote_path = Path(kindle.sorted_download_folder)
     file_name = f"{work.title}.epub"
     if len(work.fandoms) > 1:
-        remote_path = remote_path.joinpath("Multiple/Crossover")
+        remote_path = remote_path.joinpath("Multiple")
     else:
         remote_path = remote_path.joinpath(work.fandoms[0])
     if work.series_list:
@@ -51,7 +51,7 @@ def construct_path_for_work(work: common.DB_Work) -> Path:
 def construct_path_for_series(series: common.DB_Series) -> Path:
     remote_path = Path(kindle.sorted_download_folder)
     if len(series.fandoms) > 1:
-        remote_path = remote_path.joinpath("Multiple/Crossover")
+        remote_path = remote_path.joinpath("Multiple")
     else:
         remote_path = remote_path.joinpath(series.fandoms[0])
     remote_path = remote_path.joinpath(series.title)
