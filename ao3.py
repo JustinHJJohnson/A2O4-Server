@@ -6,40 +6,19 @@ import common
 import sqlite
 from pathlib import Path
 
-config = toml.load(f"./config.toml")
-
-fandom_map: dict[str, str] = {
-    "Fallout 4": "Fallout",
-    "Fallout (Video Games)": "Fallout",
-    "Baldur's Gate (Video Games)": "Baldur's Gate",
-    "Cyberpunk 2077 (Video Game)": "Cyberpunk 2077",
-    "Cyberpunk & Cyberpunk 2020 (Roleplaying Games)": "Cyberpunk 2077",
-    "Persona 5": "Persona",
-    "Persona 5 Royal": "Persona",
-    "Persona 5 Strikers": "Persona",
-    "Persona 4": "Persona",
-    "Persona 3": "Persona",
-    "persona - Fandom": "Persona",
-    "Persona Series": "Persona",
-    "逆転裁判 | Gyakuten Saiban | Ace Attorney": "Ace Attorney",
-    "大逆転裁判 | Dai Gyakuten Saiban | The Great Ace Attorney Chronicles (Video Games)": "Ace Attorney",
-    "NieR: Automata (Video Game)": "NieR",
-    "Dungeons & Dragons (Roleplaying Game)": "Dungeons & Dragons",
-    "Shin Megami Tensei Series": "Shin Megami Tensei"
-}
+config = common.Config(toml.load(f"./config.toml"))
 
 def map_and_filter_fandoms(fandoms: list[str]) -> list[str]:
     new_list = fandoms.copy()
-    new_list = list(set(map(lambda fandom: fandom_map[fandom] if fandom in fandom_map else fandom, new_list)))
-    if ("Dungeons & Dragons" in new_list and "Baldur's Gate (Video Games)" in new_list):
-        new_list.remove("Dungeons & Dragons")
-    elif ("Shin Megami Tensei" in new_list and "Persona" in new_list):
-        new_list.remove("Shin Megami Tensei")
-    
+    new_list = list(set(map(lambda fandom: config.fandom_map.get(fandom, fandom), new_list)))
+    for fandom in new_list:
+        for fandom_to_remove in config.fandom_filter.get(fandom, []):
+            if fandom_to_remove in new_list:
+                new_list.remove(fandom_to_remove)
     return new_list
 
 def download_single_work(work: AO3.Work) -> tuple[Path, common.DB_Work]:
-    download_path = Path(config['download_path'])
+    download_path = Path(config.download_path)
     authors: list[str] = []
     title = common.sanitise_title(work.title)
     print("Authors are:")
@@ -80,7 +59,7 @@ def download_single_work(work: AO3.Work) -> tuple[Path, common.DB_Work]:
     return (download_path, db_work)
 
 def download_series_and_sort(series: AO3.Series) -> tuple[Path, common.DB_Work]:
-    download_path = Path(config['download_path'])
+    download_path = Path(config.download_path)
     download_path = download_path.joinpath(series.name)
     download_path.mkdir(exist_ok=True)
     authors: list[str] = []
@@ -136,13 +115,13 @@ def download_series_and_sort(series: AO3.Series) -> tuple[Path, common.DB_Work]:
     return (download_path, db_series)
 
 def download_work(work_id: int):
-    session = AO3.Session(config['ao3_username'], config['ao3_password'])
+    session = AO3.Session(config.ao3_username, config.ao3_password)
     work = AO3.Work(work_id, session)
     #download_single_work(work)
     kindle.copy_single_work(*download_single_work(work))
 
 def download_series(series_id: int):
-    session = AO3.Session(config['ao3_username'], config['ao3_password'])
+    session = AO3.Session(config.ao3_username, config.ao3_password)
     series = AO3.Series(series_id, session)
     #download_series_and_sort(series)
     kindle.copy_series(*download_series_and_sort(series))

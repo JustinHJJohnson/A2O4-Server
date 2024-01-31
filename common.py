@@ -20,11 +20,21 @@ class Device():
     def __init__(self, name: str, ip: str, port: int, username: str, password: str, loose_download_folder: str, sorted_download_folder: str) -> None:
         self.name = name
         self.ip = ip
-        self.port = int(port)
+        self.port = port
         self.username = username
         self.password = password
         self.loose_download_folder = loose_download_folder
         self.sorted_download_folder = sorted_download_folder
+
+class Config():
+    def __init__(self, config: dict) -> None:
+        self.download_path: str = config["download_path"]
+        self.ao3_username: str = config["ao3_username"]
+        self.ao3_password: str = config["ao3_password"]
+        self.devices: list[Device] = list(map(lambda device: Device(*device), config['devices']))
+        self.fandom_map: dict[str, str] = config['fandom_map']
+        self.fandom_filter: dict[str, list[str]] = config['fandom_filter']
+
 
 def sanitise_title(title: str) -> str:
     new_title = re.sub(r"/", " ", title)
