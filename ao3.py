@@ -13,6 +13,7 @@ fandom_map: dict[str, str] = {
     "Fallout (Video Games)": "Fallout",
     "Baldur's Gate (Video Games)": "Baldur's Gate",
     "Cyberpunk 2077 (Video Game)": "Cyberpunk 2077",
+    "Cyberpunk & Cyberpunk 2020 (Roleplaying Games)": "Cyberpunk 2077",
     "Persona 5": "Persona",
     "Persona 5 Royal": "Persona",
     "Persona 5 Strikers": "Persona",
@@ -87,7 +88,7 @@ def download_series_and_sort(series: AO3.Series) -> tuple[Path, common.DB_Work]:
     db_works: list[common.DB_Work] = []
     name = common.sanitise_title(series.name)
     for work in series.work_list:
-        work.reload()
+        work.reload(False)
         authors: list[str] = []
         title = common.sanitise_title(work.title)
         print("Authors are:")
@@ -102,10 +103,10 @@ def download_series_and_sort(series: AO3.Series) -> tuple[Path, common.DB_Work]:
                 continue
             print(f"\t{series.name} part {part}")
             series_authors: list[str] = []
-            work_series.reload()
             for author in series.creators:
                 series_authors.append(author.username)
             series_list.append(common.DB_Series(work_series.id, work_series.name, series_authors))
+            break
         filtered_fandoms = map_and_filter_fandoms(work.metadata['fandoms'])
         fandoms.extend(filtered_fandoms)
         work_download_path = download_path.joinpath(f"{work.metadata["parts_in_series"][series_index]} - {title}.epub")
@@ -113,6 +114,7 @@ def download_series_and_sort(series: AO3.Series) -> tuple[Path, common.DB_Work]:
             print(f"{work_download_path} exist, skipping")
         else:
             print(f"Downloading {work.title}")
+            work.load_chapters()
             with open(work_download_path, "wb") as file:
                 file.write(work.download("EPUB"))
                 file.close()
