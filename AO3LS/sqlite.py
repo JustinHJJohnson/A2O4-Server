@@ -1,7 +1,7 @@
 import sqlite3
-import common
 from datetime import datetime
 from os.path import exists
+from . import common
 
 def create_database() -> None:
     if exists('db.sqlite'):
@@ -96,5 +96,11 @@ def add_work_to_device(work_id: str, device: str) -> None:
 
     con.commit()
     con.close()
-        
+
+#TODO
+def add_series_to_device(series_id: str, device: str) -> None:
+    (con, cur) = connect_to_db()
+    currentDateTime = datetime.now().date()
+
+    cur.execute(f"INSERT OR IGNORE INTO device VALUES (\"{device}\")")
     

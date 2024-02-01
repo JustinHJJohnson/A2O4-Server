@@ -1,9 +1,8 @@
 import toml
 import paramiko
 import os
-import common
-import sqlite
 from pathlib import Path
+from . import common, sqlite
 
 # Stolen from https://stackoverflow.com/questions/4409502/directory-transfers-with-paramiko
 class MySFTPClient(paramiko.SFTPClient):
@@ -32,11 +31,8 @@ class MySFTPClient(paramiko.SFTPClient):
                     self.mkdir('%s/%s' % (target, item), ignore_existing=True)
                     self.put_dir(os.path.join(source, item), '%s/%s' % (target, item))
 
-config = toml.load(f"./config.toml")
-kindle = common.Device(**config["devices"][0])
-
-def construct_path_for_work(work: common.DB_Work) -> Path:
-    remote_path = Path(kindle.sorted_download_folder)
+def construct_path_for_work(work: common.DB_Work, sorted_download_folder: str) -> Path:
+    remote_path = Path(sorted_download_folder)
     file_name = f"{work.title}.epub"
     if len(work.fandoms) > 1:
         remote_path = remote_path.joinpath("Multiple")
@@ -48,8 +44,8 @@ def construct_path_for_work(work: common.DB_Work) -> Path:
     remote_path = remote_path.joinpath(file_name)
     return remote_path
 
-def construct_path_for_series(series: common.DB_Series) -> Path:
-    remote_path = Path(kindle.sorted_download_folder)
+def construct_path_for_series(series: common.DB_Series, sorted_download_folder: str) -> Path:
+    remote_path = Path(sorted_download_folder)
     if len(series.fandoms) > 1:
         remote_path = remote_path.joinpath("Multiple")
     else:
@@ -57,9 +53,9 @@ def construct_path_for_series(series: common.DB_Series) -> Path:
     remote_path = remote_path.joinpath(series.title)
     return remote_path
 
-def establish_sftp_connection() -> MySFTPClient:
-    transport = paramiko.Transport((kindle.ip, kindle.port))
-    transport.connect(username=kindle.username, password=kindle.password)
+def establish_sftp_connection(device: common.Device) -> MySFTPClient:
+    transport = paramiko.Transport((device.ip, device.port))
+    transport.connect(username=device.username, password=device.password)
     return MySFTPClient.from_transport(transport)
 
 def make_dirs_if_not_exist(sftp: MySFTPClient, path: Path, series: bool = False) -> None:
@@ -81,19 +77,19 @@ def make_dirs_if_not_exist(sftp: MySFTPClient, path: Path, series: bool = False)
         print(f"trying to mkdir {dir_to_make}")
         sftp.mkdir(dir_to_make)
 
-def copy_single_work(local_path: Path, metadata: common.DB_Work) -> None:
-    remote_path = construct_path_for_work(metadata)
-    sftp = establish_sftp_connection()
+def copy_single_work(local_path: Path, metadata: common.DB_Work, config: common.Config) -> None:
+    remote_path = construct_path_for_work(metadata, config.devices[0].sorted_download_folder)
+    sftp = establish_sftp_connection(config.devices[0])
     print(f"local: {local_path.as_posix()}")
     print(f"remote: {remote_path.as_posix()}")
     make_dirs_if_not_exist(sftp, remote_path)
     sftp.put(local_path.as_posix(), remote_path.as_posix())
     sftp.close()
-    sqlite.add_work_to_device(metadata.id, kindle.name)
+    sqlite.add_work_to_device(metadata.id, config.devices[0].name)
     
-def copy_series(series_to_move: Path, metadata: common.DB_Series):
-    remote_path = construct_path_for_series(metadata)
-    sftp = establish_sftp_connection()
+def copy_series(series_to_move: Path, metadata: common.DB_Series, config: common.Config):
+    remote_path = construct_path_for_series(metadata, config.devices[0].sorted_download_folder)
+    sftp = establish_sftp_connection(config.devices[0])
     print(f"local: {series_to_move.as_posix()}")
     print(f"remote: {remote_path.as_posix()}")
     make_dirs_if_not_exist(sftp, remote_path, True)
