@@ -9,8 +9,7 @@ def map_and_filter_fandoms(fandoms: list[str], config: common.Config) -> list[st
     new_list = fandoms.copy()
     new_list = list(dict.fromkeys(map(lambda fandom: config.fandom_map.get(fandom, fandom), new_list)))
     for fandom in new_list:
-        test = config.fandom_filter.get(fandom, [])
-        for fandom_to_remove in test:
+        for fandom_to_remove in config.fandom_filter.get(fandom, []):
             if fandom_to_remove in new_list:
                 new_list.remove(fandom_to_remove)
     return new_list
@@ -112,14 +111,16 @@ def download_series_and_sort(series: AO3.Series, config: common.Config) -> tuple
         sqlite.add_series(db_series, db_works)
     return (download_path, db_series)
 
-def download_work(work_id: int, config: common.Config):
+def download_work(work_id: int, config: common.Config) -> str:
     session = AO3.Session(config.ao3_username, config.ao3_password)
     work = AO3.Work(work_id, session)
     #download_single_work(work)
     kindle.copy_single_work(*download_single_work(work, config), config)
+    return work.title
 
-def download_series(series_id: int, config: common.Config):
+def download_series(series_id: int, config: common.Config) -> str:
     session = AO3.Session(config.ao3_username, config.ao3_password)
     series = AO3.Series(series_id, session)
     #download_series_and_sort(series)
     kindle.copy_series(*download_series_and_sort(series, config), config)
+    return series.name

@@ -19,14 +19,12 @@ def download_work_or_series():
             return "Not a valid AO3 URL", 400
         elif (results[0] == "works"):
             print(f"Work with the ID: {results[1]}")
-            ao3.download_work(int(results[1]))
+            work_name = ao3.download_work(int(results[1]), config)
+            return f"Successfully downloaded work {results[1]} - {work_name}", 200
         elif (results[0] == "series"):
             print(f"Series with the ID: {results[1]}")
-            ao3.download_series(int(results[1]))
-        
-        return f"Successfully downloaded work {results[1]}", 200
-    else:
-        return "", 400
+            series_name = ao3.download_series(int(results[1]), config)
+            return f"Successfully downloaded series {results[1]} - {series_name}", 200
 
 sqlite.create_database()
 app.run(host=host, port=5001, debug=True)
