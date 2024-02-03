@@ -1,5 +1,6 @@
 __pycache__
 config.toml
+test.toml
 log.txt
 test.py
 db.sqlite

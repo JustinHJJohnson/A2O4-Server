@@ -1,8 +1,7 @@
-import toml
 import paramiko
 import os
 from pathlib import Path
-from . import common, sqlite
+from . import common, sqlite, config
 
 # Stolen from https://stackoverflow.com/questions/4409502/directory-transfers-with-paramiko
 class MySFTPClient(paramiko.SFTPClient):
@@ -77,19 +76,19 @@ def make_dirs_if_not_exist(sftp: MySFTPClient, path: Path, series: bool = False)
         print(f"trying to mkdir {dir_to_make}")
         sftp.mkdir(dir_to_make)
 
-def copy_single_work(local_path: Path, metadata: common.DB_Work, config: common.Config) -> None:
-    remote_path = construct_path_for_work(metadata, config.devices[0].sorted_download_folder)
-    sftp = establish_sftp_connection(config.devices[0])
+def copy_single_work(local_path: Path, metadata: common.DB_Work) -> None:
+    remote_path = construct_path_for_work(metadata, config.get_config().devices[0].sorted_download_folder)
+    sftp = establish_sftp_connection(config.get_config().devices[0])
     print(f"local: {local_path.as_posix()}")
     print(f"remote: {remote_path.as_posix()}")
     make_dirs_if_not_exist(sftp, remote_path)
     sftp.put(local_path.as_posix(), remote_path.as_posix())
     sftp.close()
-    sqlite.add_work_to_device(metadata.id, config.devices[0].name)
+    sqlite.add_work_to_device(metadata.id, config.get_config().devices[0].name)
     
-def copy_series(series_to_move: Path, metadata: common.DB_Series, config: common.Config):
-    remote_path = construct_path_for_series(metadata, config.devices[0].sorted_download_folder)
-    sftp = establish_sftp_connection(config.devices[0])
+def copy_series(series_to_move: Path, metadata: common.DB_Series):
+    remote_path = construct_path_for_series(metadata, config.get_config().devices[0].sorted_download_folder)
+    sftp = establish_sftp_connection(config.get_config().devices[0])
     print(f"local: {series_to_move.as_posix()}")
     print(f"remote: {remote_path.as_posix()}")
     make_dirs_if_not_exist(sftp, remote_path, True)
