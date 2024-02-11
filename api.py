@@ -1,12 +1,19 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import re
+import paramiko
 from AO3LS import sqlite, ao3, config
 import AO3T as AO3
 
 host = '192.168.1.2'
 app = Flask(__name__)
 CORS(app)
+
+
+@app.errorhandler(paramiko.SSHException)
+def handle_bad_request(e):
+    error_str = f"{e}. Make sure the device is turned on and connected to the network"
+    return error_str, 503
 
 @app.route('/download', methods=['POST'])
 def download_work_or_series():
