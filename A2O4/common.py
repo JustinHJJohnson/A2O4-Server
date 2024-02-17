@@ -6,6 +6,13 @@ class DB_Series():
         self.title: str = title
         self.authors: list[str] = authors
         self.fandoms: list[str] = fandoms
+    
+    def __str__(self):
+        return f'DB_Series(id: {self.id}, title: {self.title}, authors: {self.authors}, fandoms: {self.fandoms})'
+    
+    def __repr__(self):
+        return f'DB_Series(id: {self.id}, title: {self.title}, authors: {self.authors}, fandoms: {self.fandoms})'
+
 
 class DB_Work():
     def __init__(self, id: int, title: str, authors: list[str], parts: list[int], series_list: list[DB_Series], fandoms: list[str]) -> None:

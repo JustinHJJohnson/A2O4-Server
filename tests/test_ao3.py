@@ -1,6 +1,6 @@
 import unittest
 import mock
-from AO3LS import ao3, common
+from A2O4 import ao3, common
 
 class Test_Ao3(unittest.TestCase):
     def test_map(self):

@@ -103,4 +103,131 @@ def add_series_to_device(series_id: str, device: str) -> None:
     currentDateTime = datetime.now().date()
 
     cur.execute(f"INSERT OR IGNORE INTO device VALUES (\"{device}\")")
+
+def get_work(id: int, con_cur: tuple[sqlite3.Connection, sqlite3.Cursor] = None) -> common.DB_Work:
+    con: sqlite3.Connection
+    cur: sqlite3.Cursor
     
+    if (con_cur):
+        print("Using existing connection in get_work")
+        (con, cur) = con_cur
+    else:
+        (con, cur) = connect_to_db()
+    
+    work_name = cur.execute("SELECT name FROM work WHERE id=?", (id,)).fetchone()[0]
+    fandoms = list(set(map(
+        lambda fandom: fandom[0],
+        cur.execute("SELECT fandom_name FROM work_fandom_link WHERE work_id=?", (id,)).fetchall()
+    )))
+    authors = list(set(map(
+        lambda author: author[0],
+        cur.execute("SELECT author_name FROM work_author_link WHERE work_id=?", (id,)).fetchall()
+    )))
+    all_series = cur.execute(
+        """SELECT Series.id, Link.part
+        FROM series_work_link AS Link
+        JOIN series AS Series on Link.series_id=Series.id
+        WHERE Link.work_id=?""", 
+        (id,)
+    ).fetchall()
+    parts: list[int] = []
+    full_series: list[common.DB_Series] = []
+
+    for series in all_series:
+        full_series.append(get_series(series[0]))
+        parts.append(series[1])
+
+    # print(work_name)
+    # print(fandoms)
+    # print(authors)
+    # print(all_series)
+    # print(full_series)
+    # print(parts)
+    if (not con_cur):
+        con.close()
+    return common.DB_Work(id, work_name, authors, parts, full_series, fandoms)
+
+def get_series(id: int) -> common.DB_Series:
+    (con, cur) = connect_to_db()
+
+    name = cur.execute("SELECT name FROM series WHERE id=?", (id,)).fetchone()[0]
+    authors = list(set(map(
+        lambda author: author[0],
+        cur.execute("SELECT author_name FROM series_author_link WHERE series_id=?", (id,)).fetchall()
+    )))
+    fandoms = list(set(map(
+        lambda fandom: fandom[0],
+        cur.execute("SELECT fandom_name FROM series_fandom_link WHERE series_id=?", (id,)).fetchall()
+    )))
+    
+    return common.DB_Series(id, name, authors, fandoms)
+
+def delete_work(id: int, con_cur: tuple[sqlite3.Connection, sqlite3.Cursor] = None) -> None:
+    con: sqlite3.Connection
+    cur: sqlite3.Cursor
+
+    if (con_cur):
+        print("Using existing connection in delete work")
+        (con, cur) = con_cur
+    else:
+        (con, cur) = connect_to_db()
+
+    work = get_work(id, (con, cur))
+
+    cur.execute("DELETE FROM work WHERE id=?", (id,))
+    cur.execute("DELETE FROM work_author_link WHERE work_id=?", (id,))
+    cur.execute("DELETE FROM work_fandom_link WHERE work_id=?", (id,))
+    cur.execute("DELETE FROM series_work_link WHERE work_id=?", (id,))
+    cur.execute("DELETE FROM device_work_link WHERE work_id=?", (id,))
+
+    for author in work.authors:
+        print(author)
+        num_work_links = cur.execute("SELECT COUNT(*) FROM work_author_link WHERE author_name=?", (author,)).fetchone()[0]
+        print(num_work_links)
+        if (num_work_links != 0):
+            continue
+        num_series_links = cur.execute("SELECT COUNT(*) FROM series_author_link WHERE author_name=?", (author,)).fetchone()[0] 
+        print(num_series_links)
+        if (num_series_links != 0):
+            continue
+        cur.execute("DELETE FROM author WHERE name=?", (author,))
+    
+    print()
+
+    for fandom in work.fandoms:
+        print(fandom)
+        num_work_links = cur.execute("SELECT COUNT(*) FROM work_fandom_link WHERE fandom_name=?", (fandom,)).fetchone()[0]
+        print(num_work_links)
+        if (num_work_links != 0):
+            continue
+        num_series_links = cur.execute("SELECT COUNT(*) FROM series_fandom_link WHERE fandom_name=?", (fandom,)).fetchone()[0] 
+        print(num_series_links)
+        if (num_series_links != 0):
+            continue
+        cur.execute("DELETE FROM fandom WHERE name=?", (fandom,))
+
+    print()
+    
+    for series in work.series_list:
+        print(series.title)
+        num_work_links = cur.execute("SELECT COUNT(*) FROM series_work_link WHERE series_id=?", (series.id,)).fetchone()[0]
+        print(num_work_links)
+        if (num_work_links == 0):
+            cur.execute("DELETE FROM series WHERE id=?", (series.id,))
+
+    #con.commit()
+    if (not con_cur):
+        con.close()
+
+def delete_series(id: int) -> None:
+    (con, cur) = connect_to_db()
+
+    cur.execute("DELETE FROM work WHERE id=?", (id,))
+
+    works_in_series = cur.execute("SELECT work_id FROM series_work_link WHERE series_id=?", (id,))
+
+    for work in works_in_series:
+        delete_work(work, (con, cur))
+
+    #con.commit()
+    con.close()

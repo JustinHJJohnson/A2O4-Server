@@ -109,16 +109,23 @@ def download_series_and_sort(series: AO3.Series) -> tuple[Path, common.DB_Work]:
         sqlite.add_series(db_series, db_works)
     return (download_path, db_series)
 
-def download_work(work_id: int) -> str:
+def download_work(id: int) -> AO3.Work:
     session = AO3.Session(config.get_config().ao3_username, config.get_config().ao3_password)
-    work = AO3.Work(work_id, session, load_chapters=False)
+    work = AO3.Work(id, session, load_chapters=False)
     #download_single_work(work)
     kindle.copy_single_work(*download_single_work(work))
-    return work.title
+    return work
 
-def download_series(series_id: int) -> str:
+def download_series(id: int) -> AO3.Series:
     session = AO3.Session(config.get_config().ao3_username, config.get_config().ao3_password)
-    series = AO3.Series(series_id, session)
+    series = AO3.Series(id, session)
     #download_series_and_sort(series)
     kindle.copy_series(*download_series_and_sort(series))
-    return series.name
+    return series
+
+def delete_series(id: int) -> None:
+    return
+
+def delete_work(id: int) -> None:
+    work = sqlite.delete_work(id)
+    return
