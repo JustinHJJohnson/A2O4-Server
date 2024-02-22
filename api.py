@@ -48,8 +48,10 @@ def delete_work_or_series(type: str, id: str):
     if (not re.fullmatch(r"(\d{6,8})", id)):
         return "Not a valid id", 400
     if (type == 'work'):
+        print("deleting work")
         ao3.delete_work(id)
     else:
+        print("deleting series")
         ao3.delete_series(id)
     return "", 200
         

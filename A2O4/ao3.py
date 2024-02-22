@@ -113,7 +113,7 @@ def download_work(id: int) -> AO3.Work:
     session = AO3.Session(config.get_config().ao3_username, config.get_config().ao3_password)
     work = AO3.Work(id, session, load_chapters=False)
     #download_single_work(work)
-    kindle.copy_single_work(*download_single_work(work))
+    kindle.copy_work(*download_single_work(work))
     return work
 
 def download_series(id: int) -> AO3.Series:
@@ -123,9 +123,13 @@ def download_series(id: int) -> AO3.Series:
     kindle.copy_series(*download_series_and_sort(series))
     return series
 
-def delete_series(id: int) -> None:
+#TODO think about these functions, wasteful to get the work/series from the database twice
+def delete_work(id: int) -> None:
+    sqlite.delete_work(id)
+    kindle.delete_series(sqlite.get_work(id))
     return
 
-def delete_work(id: int) -> None:
-    work = sqlite.delete_work(id)
+def delete_series(id: int) -> None:
+    sqlite.delete_series(id)
+    kindle.delete_series(sqlite.get_series(id))
     return

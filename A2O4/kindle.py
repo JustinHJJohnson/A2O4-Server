@@ -5,7 +5,7 @@ from . import common, sqlite, config
 
 # Stolen from https://stackoverflow.com/questions/4409502/directory-transfers-with-paramiko
 class MySFTPClient(paramiko.SFTPClient):
-    def put_dir(self, source: str, target: str):
+    def put_dir(self, source: str, target: str) -> None:
         ''' Uploads the contents of the source directory to the target path. The
           target directory needs to exists. All subdirectories in source are 
           created under target.
@@ -30,7 +30,13 @@ class MySFTPClient(paramiko.SFTPClient):
                     self.mkdir('%s/%s' % (target, item), ignore_existing=True)
                     self.put_dir(os.path.join(source, item), '%s/%s' % (target, item))
 
-def construct_path_for_work(work: common.DB_Work, sorted_download_folder: str) -> Path:
+    def remove_dir(self, target: str) -> None:
+        for file in self.listdir(target):
+            self.remove(file)
+        self.remove(target)
+
+
+def construct_path_for_work(work: common.DB_Work, sorted_download_folder: str, series_index: int = 0) -> Path:
     remote_path = Path(sorted_download_folder)
     file_name = f"{work.title}.epub"
     if len(work.fandoms) > 1:
@@ -38,8 +44,8 @@ def construct_path_for_work(work: common.DB_Work, sorted_download_folder: str) -
     else:
         remote_path = remote_path.joinpath(work.fandoms[0])
     if work.series_list:
-        remote_path = remote_path.joinpath(work.series_list[0].title)
-        file_name = f"{work.parts[0]} - {file_name}"
+        remote_path = remote_path.joinpath(work.series_list[series_index].title)
+        file_name = f"{work.parts[series_index]} - {file_name}"
     remote_path = remote_path.joinpath(file_name)
     return remote_path
 
@@ -76,7 +82,7 @@ def make_dirs_if_not_exist(sftp: MySFTPClient, path: Path, series: bool = False)
         print(f"trying to mkdir {dir_to_make}")
         sftp.mkdir(dir_to_make)
 
-def copy_single_work(local_path: Path, metadata: common.DB_Work) -> None:
+def copy_work(local_path: Path, metadata: common.DB_Work) -> None:
     remote_path = construct_path_for_work(metadata, config.get_config().devices[0].sorted_download_folder)
     sftp = establish_sftp_connection(config.get_config().devices[0])
     print(f"local: {local_path.as_posix()}")
@@ -86,7 +92,7 @@ def copy_single_work(local_path: Path, metadata: common.DB_Work) -> None:
     sftp.close()
     sqlite.add_work_to_device(metadata.id, config.get_config().devices[0].name)
     
-def copy_series(series_to_move: Path, metadata: common.DB_Series):
+def copy_series(series_to_move: Path, metadata: common.DB_Series) -> None:
     remote_path = construct_path_for_series(metadata, config.get_config().devices[0].sorted_download_folder)
     sftp = establish_sftp_connection(config.get_config().devices[0])
     print(f"local: {series_to_move.as_posix()}")
@@ -95,3 +101,18 @@ def copy_series(series_to_move: Path, metadata: common.DB_Series):
     sftp.put_dir(series_to_move.as_posix(), remote_path.as_posix())
     sftp.close()
     #TODO add series to device sql
+
+def delete_work(metadata: common.DB_Work) -> None:
+    sftp = establish_sftp_connection(config.get_config().devices[0])
+    
+    for index, _ in enumerate(metadata.series_list):
+        sftp.remove(
+            construct_path_for_work(metadata, config.get_config().devices[0].sorted_download_folder, index).as_posix()
+        )
+
+    sftp.close()
+
+def delete_series(metadata: common.DB_Series) -> None:
+    sftp = establish_sftp_connection(config.get_config().devices[0])
+    sftp.remove_dir(construct_path_for_series(metadata, config.get_config().devices[0].sorted_download_folder))
+    sftp.close()
