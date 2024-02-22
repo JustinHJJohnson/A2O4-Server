@@ -109,13 +109,12 @@ def get_work(id: int, con_cur: tuple[sqlite3.Connection, sqlite3.Cursor] = None)
     cur: sqlite3.Cursor
     
     if (con_cur):
-        print("Using existing connection in get_work")
         (con, cur) = con_cur
     else:
         (con, cur) = connect_to_db()
     
-    work_name = cur.execute("SELECT name FROM work WHERE id = ?;", (id,)).fetchone()
-    
+    work_name = cur.execute("SELECT name FROM work WHERE id = ?;", (id,)).fetchone()[0]
+
     fandoms = list(set(map(
         lambda fandom: fandom[0],
         cur.execute("SELECT fandom_name FROM work_fandom_link WHERE work_id = ?", (id,)).fetchall()
@@ -162,7 +161,6 @@ def delete_work(id: int, con_cur: tuple[sqlite3.Connection, sqlite3.Cursor] = No
     cur: sqlite3.Cursor
 
     if (con_cur):
-        print("Using existing connection in delete work")
         (con, cur) = con_cur
     else:
         (con, cur) = connect_to_db()
@@ -210,7 +208,6 @@ def delete_series(id: int, con_cur: tuple[sqlite3.Connection, sqlite3.Cursor] = 
     cur: sqlite3.Cursor
 
     if (con_cur):
-        print("Using existing connection in delete series")
         (con, cur) = con_cur
     else:
         (con, cur) = connect_to_db()

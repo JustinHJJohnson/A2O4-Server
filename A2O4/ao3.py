@@ -126,7 +126,7 @@ def download_series(id: int) -> AO3.Series:
 #TODO think about these functions, wasteful to get the work/series from the database twice
 def delete_work(id: int) -> None:
     sqlite.delete_work(id)
-    kindle.delete_series(sqlite.get_work(id))
+    kindle.delete_work(sqlite.get_work(id))
     return
 
 def delete_series(id: int) -> None:

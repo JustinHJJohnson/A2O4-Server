@@ -36,9 +36,7 @@ class Config():
         return json_dict
 
 
-print("loading config")
 config = Config(toml.load(f"./config.toml"))
-print("config loaded")
     
 def get_config() -> Config:
     return config

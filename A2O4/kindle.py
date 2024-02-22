@@ -1,5 +1,6 @@
 import paramiko
 import os
+import stat
 from pathlib import Path
 from . import common, sqlite, config
 
@@ -32,8 +33,12 @@ class MySFTPClient(paramiko.SFTPClient):
 
     def remove_dir(self, target: str) -> None:
         for file in self.listdir(target):
-            self.remove(file)
-        self.remove(target)
+            path = os.path.join(target, file)
+            if stat.S_ISDIR(self.stat(path).st_mode):
+                self.remove_dir(path)
+            else:
+                self.remove(path)
+        self.rmdir(target)
 
 
 def construct_path_for_work(work: common.DB_Work, sorted_download_folder: str, series_index: int = 0) -> Path:
@@ -105,14 +110,21 @@ def copy_series(series_to_move: Path, metadata: common.DB_Series) -> None:
 def delete_work(metadata: common.DB_Work) -> None:
     sftp = establish_sftp_connection(config.get_config().devices[0])
     
-    for index, _ in enumerate(metadata.series_list):
-        sftp.remove(
-            construct_path_for_work(metadata, config.get_config().devices[0].sorted_download_folder, index).as_posix()
-        )
+    if (metadata.series_list):
+        for index, _ in enumerate(metadata.series_list):
+            path = construct_path_for_work(metadata, config.get_config().devices[0].sorted_download_folder, index)
+            print(path)
+            sftp.remove(path.as_posix())
+            sftp.remove_dir(path.with_suffix('.sdr').as_posix())
+    else:
+        path = construct_path_for_work(metadata, config.get_config().devices[0].sorted_download_folder)
+        print(path)
+        sftp.remove(path.as_posix())
+        sftp.remove_dir(path.with_suffix('.sdr').as_posix())
 
     sftp.close()
 
 def delete_series(metadata: common.DB_Series) -> None:
     sftp = establish_sftp_connection(config.get_config().devices[0])
-    sftp.remove_dir(construct_path_for_series(metadata, config.get_config().devices[0].sorted_download_folder))
+    sftp.remove_dir(construct_path_for_series(metadata, config.get_config().devices[0].sorted_download_folder).as_posix())
     sftp.close()
