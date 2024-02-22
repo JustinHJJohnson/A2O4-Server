@@ -27,7 +27,6 @@ class Test_Ao3(unittest.TestCase):
                 'Dungeons & Dragons (Roleplaying Game)': 'Dungeons & Dragons'
             },
         })
-
         mock_config.return_value = configuration
 
         filter_fandoms = ao3.map_and_filter_fandoms(
@@ -54,7 +53,6 @@ class Test_Ao3(unittest.TestCase):
             },
             'fandom_map': {}
         })
-
         mock_config.return_value = configuration
 
         filter_fandoms = ao3.map_and_filter_fandoms(
@@ -96,7 +94,6 @@ class Test_Ao3(unittest.TestCase):
                 'Persona': ['Shin Megami Tensei']
             }
         })
-
         mock_config.return_value = configuration
 
         filter_fandoms = ao3.map_and_filter_fandoms(
