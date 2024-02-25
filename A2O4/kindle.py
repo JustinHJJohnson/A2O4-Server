@@ -40,6 +40,13 @@ class MySFTPClient(paramiko.SFTPClient):
                 self.remove(path)
         self.rmdir(target)
 
+    def exists(self, target: str) -> bool:
+        try:
+            self.stat(target)
+            return True
+        except FileNotFoundError:
+            return False
+
 
 def construct_path_for_work(work: common.DB_Work, sorted_download_folder: str, series_index: int = 0) -> Path:
     remote_path = Path(sorted_download_folder)
@@ -119,8 +126,13 @@ def delete_work(metadata: common.DB_Work) -> None:
     else:
         path = construct_path_for_work(metadata, config.get_config().devices[0].sorted_download_folder)
         print(path)
-        sftp.remove(path.as_posix())
-        sftp.remove_dir(path.with_suffix('.sdr').as_posix())
+        if (sftp.exists(path.as_posix())):
+            sftp.remove(path.as_posix())
+        else:
+            print("File not found on device, might have already been deleted")
+        koreader_metadata_path = path.with_suffix('.sdr').as_posix()
+        if (sftp.exists(koreader_metadata_path)):
+            sftp.remove_dir(koreader_metadata_path)
 
     sftp.close()
 
