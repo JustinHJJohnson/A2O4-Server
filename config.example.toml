@@ -1,7 +1,7 @@
 # where to store downloaded works on the local machine
 download_path = '../test/downloads'
 
-#Used to access bookmarks and restricted works
+# Used to access bookmarks and restricted works
 ao3_username = "username"
 ao3_password = "password"
 
@@ -12,8 +12,8 @@ ip = "127.0.0.1"
 port = 22
 username = "root"
 password = "root"
-loose_download_folder = '/fanfics/unsorted'
-sorted_download_folder = '/fanfics/sorted'
+download_folder = '/fanfics/sorted'
+uses_KOReader = true                    # KOReader generates a metadata folder that needs to be cleaned up on deletes
 
 [[devices]]
 name = "Phone"
@@ -21,8 +21,8 @@ ip = "127.0.0.2"
 port = 22
 username = "root"
 password = "root"
-loose_download_folder = '/fanfics/unsorted'
-sorted_download_folder = '/fanfics/sorted'
+download_folder = '/fanfics/sorted'
+uses_KOReader = false
 
 # maps fandom names
 [fandom_map]

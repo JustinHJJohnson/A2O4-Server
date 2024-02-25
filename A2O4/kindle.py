@@ -48,8 +48,8 @@ class MySFTPClient(paramiko.SFTPClient):
             return False
 
 
-def construct_path_for_work(work: common.DB_Work, sorted_download_folder: str, series_index: int = 0) -> Path:
-    remote_path = Path(sorted_download_folder)
+def construct_path_for_work(work: common.DB_Work, download_folder: str, series_index: int = 0) -> Path:
+    remote_path = Path(download_folder)
     file_name = f"{work.title}.epub"
     if len(work.fandoms) > 1:
         remote_path = remote_path.joinpath("Multiple")
@@ -61,8 +61,8 @@ def construct_path_for_work(work: common.DB_Work, sorted_download_folder: str, s
     remote_path = remote_path.joinpath(file_name)
     return remote_path
 
-def construct_path_for_series(series: common.DB_Series, sorted_download_folder: str) -> Path:
-    remote_path = Path(sorted_download_folder)
+def construct_path_for_series(series: common.DB_Series, download_folder: str) -> Path:
+    remote_path = Path(download_folder)
     if len(series.fandoms) > 1:
         remote_path = remote_path.joinpath("Multiple")
     else:
@@ -95,18 +95,20 @@ def make_dirs_if_not_exist(sftp: MySFTPClient, path: Path, series: bool = False)
         sftp.mkdir(dir_to_make)
 
 def copy_work(local_path: Path, metadata: common.DB_Work) -> None:
-    remote_path = construct_path_for_work(metadata, config.get_config().devices[0].sorted_download_folder)
-    sftp = establish_sftp_connection(config.get_config().devices[0])
+    device_config = config.get_config().devices[0]
+    remote_path = construct_path_for_work(metadata, device_config.download_folder)
+    sftp = establish_sftp_connection(device_config)
     print(f"local: {local_path.as_posix()}")
     print(f"remote: {remote_path.as_posix()}")
     make_dirs_if_not_exist(sftp, remote_path)
     sftp.put(local_path.as_posix(), remote_path.as_posix())
     sftp.close()
-    sqlite.add_work_to_device(metadata.id, config.get_config().devices[0].name)
+    sqlite.add_work_to_device(metadata.id, device_config.name)
     
 def copy_series(series_to_move: Path, metadata: common.DB_Series) -> None:
-    remote_path = construct_path_for_series(metadata, config.get_config().devices[0].sorted_download_folder)
-    sftp = establish_sftp_connection(config.get_config().devices[0])
+    device_config = config.get_config().devices[0]
+    remote_path = construct_path_for_series(metadata, device_config.download_folder)
+    sftp = establish_sftp_connection(device_config)
     print(f"local: {series_to_move.as_posix()}")
     print(f"remote: {remote_path.as_posix()}")
     make_dirs_if_not_exist(sftp, remote_path, True)
@@ -115,28 +117,29 @@ def copy_series(series_to_move: Path, metadata: common.DB_Series) -> None:
     #TODO add series to device sql
 
 def delete_work(metadata: common.DB_Work) -> None:
-    sftp = establish_sftp_connection(config.get_config().devices[0])
+    device_config = config.get_config().devices[0]
+    sftp = establish_sftp_connection(device_config)
     
     if (metadata.series_list):
         for index, _ in enumerate(metadata.series_list):
-            path = construct_path_for_work(metadata, config.get_config().devices[0].sorted_download_folder, index)
+            path = construct_path_for_work(metadata, device_config.download_folder, index)
             print(path)
             sftp.remove(path.as_posix())
             sftp.remove_dir(path.with_suffix('.sdr').as_posix())
     else:
-        path = construct_path_for_work(metadata, config.get_config().devices[0].sorted_download_folder)
+        path = construct_path_for_work(metadata, device_config.download_folder)
         print(path)
         if (sftp.exists(path.as_posix())):
             sftp.remove(path.as_posix())
         else:
             print("File not found on device, might have already been deleted")
         koreader_metadata_path = path.with_suffix('.sdr').as_posix()
-        if (sftp.exists(koreader_metadata_path)):
+        if (device_config.uses_koreader and sftp.exists(koreader_metadata_path)):
             sftp.remove_dir(koreader_metadata_path)
 
     sftp.close()
 
 def delete_series(metadata: common.DB_Series) -> None:
     sftp = establish_sftp_connection(config.get_config().devices[0])
-    sftp.remove_dir(construct_path_for_series(metadata, config.get_config().devices[0].sorted_download_folder).as_posix())
+    sftp.remove_dir(construct_path_for_series(metadata, config.get_config().devices[0].download_folder).as_posix())
     sftp.close()
