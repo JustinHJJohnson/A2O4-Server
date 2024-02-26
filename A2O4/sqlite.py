@@ -1,5 +1,5 @@
 import sqlite3
-from datetime import datetime
+from datetime import date
 from os.path import exists
 from . import common
 
@@ -21,78 +21,103 @@ def connect_to_db() -> tuple[sqlite3.Connection, sqlite3.Cursor]:
     con = sqlite3.connect('db.sqlite')
     return (con, con.cursor())
 
-def add_work(work: common.DB_Work) -> None:
-    (con, cur) = connect_to_db()
-    currentDateTime = datetime.now().date()
-    cur.execute(f"INSERT INTO work VALUES ({work.id}, \"{work.title}\", \"{currentDateTime}\")")
+def add_work(work: common.DB_Work, series_info: bool = True, con_cur: tuple[sqlite3.Connection, sqlite3.Cursor] = None) -> None:
+    con: sqlite3.Connection
+    cur: sqlite3.Cursor
+    
+    if (con_cur):
+        (con, cur) = con_cur
+    else:
+        (con, cur) = connect_to_db()
+    
+    currentDateTime = date.today().isoformat()
+
+    fandom_rows: list[tuple[str]] = []
+    author_rows: list[tuple[str]] = []
+    series_row: list[tuple[int, str]] = []
+    work_fandom_rows: list[tuple[int, str]] = []
+    work_author_rows: list[tuple[int, str]] = []
+    series_fandom_rows: list[tuple[int, str]] = []
+    series_author_rows: list[tuple[int, str]] = []
+    series_work_rows: list[tuple[int, int, int]] = []
 
     for fandom in work.fandoms:
-        cur.execute(f"INSERT OR IGNORE INTO fandom VALUES (\"{fandom}\")")
-        cur.execute(f"INSERT OR IGNORE INTO work_fandom_link (work_id, fandom_name) VALUES ({work.id}, \"{fandom}\")")
+        fandom_rows.append((fandom,))
+        work_fandom_rows.append((work.id, fandom))
     for author in work.authors:
-        cur.execute(f"INSERT OR IGNORE INTO author VALUES (\"{author}\")")
-        cur.execute(f"INSERT OR IGNORE INTO work_author_link (work_id, author_name) VALUES ({work.id}, \"{author}\")")
+        author_rows.append((author,))
+        work_author_rows.append((work.id, author))
     for (series, part) in zip(work.series_list, work.parts):
-        cur.execute(f"INSERT OR IGNORE INTO series VALUES ({series.id}, \"{series.title}\")")
-        cur.execute(f"INSERT OR IGNORE INTO series_work_link (series_id, work_id, part) VALUES ({series.id}, {work.id}, {part})")
+        series_row.append((series.id, series.title))
+        series_work_rows.append((series.id, work.id, part))
         for fandom in work.fandoms:
-            cur.execute(f"INSERT OR IGNORE INTO series_fandom_link (series_id, fandom_name) VALUES ({series.id}, \"{fandom}\")")
+            series_fandom_rows.append((series.id, fandom))
         for author in series.authors:
-            cur.execute(f"INSERT OR IGNORE INTO series_author_link (series_id, author_name) VALUES ({series.id}, \"{author}\")")
+            series_author_rows.append((series.id, author))
     
-    con.commit()
-    con.close()
+    cur.execute("INSERT INTO work VALUES (?, ?, ?)", (work.id, work.title, currentDateTime))
+    cur.executemany("INSERT OR IGNORE INTO series VALUES (?, ?)", series_row)
+    cur.executemany("INSERT OR IGNORE INTO fandom VALUES (?)", fandom_rows)
+    cur.executemany("INSERT OR IGNORE INTO author VALUES (?)", author_rows)
 
-def add_series(series: common.DB_Series, works: list[common.DB_Work]) -> None:
-    (con, cur) = connect_to_db()
-    currentDateTime = datetime.now().date()
+    cur.executemany("INSERT OR IGNORE INTO work_fandom_link (work_id, fandom_name) VALUES (?, ?)", work_fandom_rows)
+    cur.executemany("INSERT OR IGNORE INTO work_author_link (work_id, author_name) VALUES (?, ?)", work_author_rows)
 
-    cur.execute(f"INSERT OR IGNORE INTO series VALUES ({series.id}, \"{series.title}\")")
-    series_sql = "INSERT OR IGNORE INTO series_work_link (series_id, work_id, part) VALUES"
-    part = 1
-    for work in works:
-        if part == 1:
-            series_sql = f"{series_sql} ({series.id}, {work.id}, {part})"
-        else:
-            series_sql = f"{series_sql}, ({series.id}, {work.id}, {part})"
-        part = part + 1
-    cur.execute(series_sql)
+    if (series_info):
+        cur.executemany("INSERT OR IGNORE INTO series_work_link (series_id, work_id, part) VALUES (?, ?, ?)", series_work_rows)
+        cur.executemany("INSERT OR IGNORE INTO series_fandom_link (series_id, fandom_name) VALUES (?, ?)", series_fandom_rows)
+        cur.executemany("INSERT OR IGNORE INTO series_author_link (series_id, author_name) VALUES (?, ?)", series_author_rows)
+    
+    if (not con_cur):
+        con.commit()
+        con.close()
 
-    for fandom in series.fandoms: 
-        cur.execute(f"INSERT OR IGNORE INTO fandom VALUES (\"{fandom}\")")
-        cur.execute(f"INSERT OR IGNORE INTO series_fandom_link (series_id, fandom_name) VALUES ({series.id}, \"{fandom}\")")
+def add_series(series: common.DB_Series, works: list[common.DB_Work], con_cur: tuple[sqlite3.Connection, sqlite3.Cursor] = None) -> None:
+    con: sqlite3.Connection
+    cur: sqlite3.Cursor
+    
+    if (con_cur):
+        (con, cur) = con_cur
+    else:
+        (con, cur) = connect_to_db()
+    #currentDateTime = date.today().isoformat()
 
+    fandom_rows: list[tuple[str]] = []
+    author_rows: list[tuple[str]] = []
+    series_fandom_rows: list[tuple[int, str]] = []
+    series_author_rows: list[tuple[int, str]] = []
+    series_work_rows: list[tuple[int, int, int]] = []
+
+    for fandom in series.fandoms:
+        fandom_rows.append((fandom,))
+        series_fandom_rows.append((series.id, fandom))
     for author in series.authors:
-        cur.execute(f"INSERT OR IGNORE INTO author VALUES (\"{author}\")")
-        cur.execute(f"INSERT OR IGNORE INTO series_author_link (series_id, author_name) VALUES ({work.id}, \"{author}\")")
+        author_rows.append((author,))
+        series_author_rows.append((series.id, author))
 
     for work in works:
-        cur.execute(f"INSERT INTO work VALUES ({work.id}, \"{work.title}\", \"{currentDateTime}\")")
-
-        for fandom in work.fandoms:
-            cur.execute(f"INSERT OR IGNORE INTO work_fandom_link (work_id, fandom_name) VALUES ({work.id}, \"{fandom}\")")
-        for author in work.authors:
-            cur.execute(f"INSERT OR IGNORE INTO author VALUES (\"{author}\")")
-            cur.execute(f"INSERT OR IGNORE INTO work_author_link (work_id, author_name) VALUES ({work.id}, \"{author}\")")
-        for (work_series, part) in zip(work.series_list, work.parts):
-            if (work_series.title == series.title): continue
-            cur.execute(f"INSERT OR IGNORE INTO series VALUES ({work_series.id}, \"{work_series.title}\")")
-            cur.execute(f"INSERT OR IGNORE INTO series_work_link (series_id, work_id, part) VALUES ({work_series.id}, {work.id}, {part})")
-            for fandom in work.fandoms:
-                cur.execute(f"INSERT OR IGNORE INTO series_fandom_link (series_id, fandom_name) VALUES ({series.id}, \"{fandom}\")")
-            for author in series.authors:
-                cur.execute(f"INSERT OR IGNORE INTO series_author_link (series_id, author_name) VALUES ({series.id}, \"{author}\")")
+        add_work(work, False, (con, cur))
+        series_index = -1
+        for i, s in enumerate(work.series_list):
+            if s.title == series.title:
+                series_index = i
+        series_work_rows.append((series.id, work.id, work.parts[series_index]))
     
-    con.commit()
-    con.close()
+    cur.executemany("INSERT OR IGNORE INTO series_work_link (series_id, work_id, part) VALUES (?, ?, ?)", series_work_rows)
+    cur.executemany("INSERT OR IGNORE INTO series_fandom_link (series_id, fandom_name) VALUES (?, ?)", series_fandom_rows)
+    cur.executemany("INSERT OR IGNORE INTO series_author_link (series_id, author_name) VALUES (?, ?)", series_author_rows)
+    
+    if (not con_cur):
+        con.commit()
+        con.close()
     
 
 def add_work_to_device(work_id: str, device: str) -> None:
     (con, cur) = connect_to_db()
-    currentDateTime = datetime.now().date()
+    currentDateTime = date.today().isoformat()
     
-    cur.execute(f"INSERT OR IGNORE INTO device VALUES (\"{device}\")")
-    cur.execute(f"INSERT INTO device_work_link (device_name, work_id, work_last_updated) VALUES (\"{device}\", {work_id}, \"{currentDateTime}\")")
+    cur.execute("INSERT OR IGNORE INTO device VALUES (?)", (device,))
+    cur.execute("INSERT INTO device_work_link (device_name, work_id, work_last_updated) VALUES (?, ?, ?)", (device, work_id, currentDateTime))
 
     con.commit()
     con.close()
@@ -100,9 +125,9 @@ def add_work_to_device(work_id: str, device: str) -> None:
 #TODO
 def add_series_to_device(series_id: str, device: str) -> None:
     (con, cur) = connect_to_db()
-    currentDateTime = datetime.now().date()
+    currentDateTime = date.today().isoformat()
 
-    cur.execute(f"INSERT OR IGNORE INTO device VALUES (\"{device}\")")
+    cur.execute("INSERT OR IGNORE INTO device VALUES (?)", (device,))
 
 def get_work(id: int, con_cur: tuple[sqlite3.Connection, sqlite3.Cursor] = None) -> common.DB_Work:
     con: sqlite3.Connection
@@ -113,7 +138,7 @@ def get_work(id: int, con_cur: tuple[sqlite3.Connection, sqlite3.Cursor] = None)
     else:
         (con, cur) = connect_to_db()
     
-    work_name = cur.execute("SELECT name FROM work WHERE id = ?;", (id,)).fetchone()[0]
+    work_name = cur.execute("SELECT name FROM work WHERE id = ?", (id,)).fetchone()[0]
 
     fandoms = list(set(map(
         lambda fandom: fandom[0],
