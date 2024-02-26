@@ -190,42 +190,14 @@ def delete_work(id: int, con_cur: tuple[sqlite3.Connection, sqlite3.Cursor] = No
     else:
         (con, cur) = connect_to_db()
 
-    #work = get_work(id, (con, cur))
-
     cur.execute('DELETE FROM work WHERE id = ?', (id,))
     cur.execute("DELETE FROM work_author_link WHERE work_id = ?", (id,))
     cur.execute("DELETE FROM work_fandom_link WHERE work_id = ?", (id,))
     cur.execute("DELETE FROM series_work_link WHERE work_id = ?", (id,))
     cur.execute("DELETE FROM device_work_link WHERE work_id = ?", (id,))
 
-    # for author in work.authors:
-    #     #print(author)
-    #     num_work_links = cur.execute("SELECT COUNT(*) FROM work_author_link WHERE author_name = ?", (author,)).fetchone()[0]
-    #     #print(num_work_links)
-    #     if (num_work_links != 0):
-    #         continue
-    #     num_series_links = cur.execute("SELECT COUNT(*) FROM series_author_link WHERE author_name = ?", (author,)).fetchone()[0] 
-    #     #print(num_series_links)
-    #     if (num_series_links != 0):
-    #         continue
-    #     cur.execute("DELETE FROM author WHERE name = ?", (author,))
-    
-    # #print()
-
-    # for fandom in work.fandoms:
-    #     #print(fandom)
-    #     num_work_links = cur.execute("SELECT COUNT(*) FROM work_fandom_link WHERE fandom_name = ?", (fandom,)).fetchone()[0]
-    #     #print(num_work_links)
-    #     if (num_work_links != 0):
-    #         continue
-    #     num_series_links = cur.execute("SELECT COUNT(*) FROM series_fandom_link WHERE fandom_name = ?", (fandom,)).fetchone()[0] 
-    #     #print(num_series_links)
-    #     if (num_series_links != 0):
-    #         continue
-    #     cur.execute("DELETE FROM fandom WHERE name = ?", (fandom,))
-
-    #con.commit()
     if (not con_cur):
+        con.commit()
         con.close()
 
 def delete_series(id: int, con_cur: tuple[sqlite3.Connection, sqlite3.Cursor] = None) -> None:
@@ -248,6 +220,6 @@ def delete_series(id: int, con_cur: tuple[sqlite3.Connection, sqlite3.Cursor] = 
     cur.execute("DELETE FROM series_author_link where series_id = ?", (id,))
     cur.execute("DELETE FROM series_fandom_link where series_id = ?", (id,))
 
-    #con.commit()
     if (not con_cur):
+        con.commit()
         con.close()
