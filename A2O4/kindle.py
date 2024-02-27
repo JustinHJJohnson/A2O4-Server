@@ -24,20 +24,20 @@ class MySFTPClient(paramiko.SFTPClient):
                     else:
                         self.put(os.path.join(source, item), "%s/%s" % (target, item))
                 else:
-                    self.mkdir("%s/%s" % (target, item), ignore_existing=True)
+                    self.mkdir("%s/%s" % (target, item))
                     self.put_dir(os.path.join(source, item), "%s/%s" % (target, item))
         else:
             for item in os.listdir(source):
                 if os.path.isfile(os.path.join(source, item)):
                     self.put(os.path.join(source, item), "%s/%s" % (target, item))
                 else:
-                    self.mkdir("%s/%s" % (target, item), ignore_existing=True)
+                    self.mkdir("%s/%s" % (target, item))
                     self.put_dir(os.path.join(source, item), "%s/%s" % (target, item))
 
     def remove_dir(self, target: str) -> None:
         for file in self.listdir(target):
             path = os.path.join(target, file)
-            if stat.S_ISDIR(self.stat(path).st_mode):
+            if stat.S_ISDIR(self.stat(path).st_mode or 0):
                 self.remove_dir(path)
             else:
                 self.remove(path)
@@ -80,7 +80,11 @@ def construct_path_for_series(series: common.DB_Series, download_folder: str) ->
 def establish_sftp_connection(device: common.Device) -> MySFTPClient:
     transport = paramiko.Transport((device.ip, device.port))
     transport.connect(username=device.username, password=device.password)
-    return MySFTPClient.from_transport(transport)
+    sftp_client = MySFTPClient.from_transport(transport)
+    if not sftp_client:
+        raise paramiko.SSHException
+    else:
+        return sftp_client
 
 
 def make_dirs_if_not_exist(

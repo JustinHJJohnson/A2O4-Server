@@ -62,10 +62,10 @@ def delete_work_or_series(type: str, id: str):
         return "Not a valid id", 400
     if type == "work":
         print("deleting work")
-        ao3.delete_work(id)
+        ao3.delete_work(int(id))
     else:
         print("deleting series")
-        ao3.delete_series(id)
+        ao3.delete_series(int(id))
     return "", 200
 
 

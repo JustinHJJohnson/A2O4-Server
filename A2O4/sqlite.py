@@ -1,6 +1,7 @@
 import sqlite3
 from datetime import date
 from os.path import exists
+from typing import Optional
 
 from . import common
 
@@ -28,7 +29,7 @@ def connect_to_db() -> tuple[sqlite3.Connection, sqlite3.Cursor]:
 def add_work(
     work: common.DB_Work,
     series_info: bool = True,
-    con_cur: tuple[sqlite3.Connection, sqlite3.Cursor] = None,
+    con_cur: Optional[tuple[sqlite3.Connection, sqlite3.Cursor]] = None,
 ) -> None:
     con: sqlite3.Connection
     cur: sqlite3.Cursor
@@ -101,7 +102,7 @@ def add_work(
 def add_series(
     series: common.DB_Series,
     works: list[common.DB_Work],
-    con_cur: tuple[sqlite3.Connection, sqlite3.Cursor] = None,
+    con_cur: Optional[tuple[sqlite3.Connection, sqlite3.Cursor]] = None,
 ) -> None:
     con: sqlite3.Connection
     cur: sqlite3.Cursor
@@ -150,7 +151,7 @@ def add_series(
         con.close()
 
 
-def add_work_to_device(work_id: str, device: str) -> None:
+def add_work_to_device(work_id: int, device: str) -> None:
     (con, cur) = connect_to_db()
     currentDateTime = date.today().isoformat()
 
@@ -173,7 +174,7 @@ def add_series_to_device(series_id: str, device: str) -> None:
 
 
 def get_work(
-    id: int, con_cur: tuple[sqlite3.Connection, sqlite3.Cursor] = None
+    id: int, con_cur: Optional[tuple[sqlite3.Connection, sqlite3.Cursor]] = None
 ) -> common.DB_Work:
     con: sqlite3.Connection
     cur: sqlite3.Cursor
@@ -221,11 +222,11 @@ def get_work(
 
     if not con_cur:
         con.close()
-    return common.DB_Work(id, work_name, authors, parts, full_series, fandoms)
+    return common.DB_Work(id, work_name, authors, full_series, parts, fandoms)
 
 
 def get_series(
-    id: int, con_cur: tuple[sqlite3.Connection, sqlite3.Cursor] = None
+    id: int, con_cur: Optional[tuple[sqlite3.Connection, sqlite3.Cursor]] = None
 ) -> common.DB_Series:
     con: sqlite3.Connection
     cur: sqlite3.Cursor
@@ -265,7 +266,7 @@ def get_series(
 
 
 def delete_work(
-    id: int, con_cur: tuple[sqlite3.Connection, sqlite3.Cursor] = None
+    id: int, con_cur: Optional[tuple[sqlite3.Connection, sqlite3.Cursor]] = None
 ) -> None:
     con: sqlite3.Connection
     cur: sqlite3.Cursor
@@ -287,7 +288,7 @@ def delete_work(
 
 
 def delete_series(
-    id: int, con_cur: tuple[sqlite3.Connection, sqlite3.Cursor] = None
+    id: int, con_cur: Optional[tuple[sqlite3.Connection, sqlite3.Cursor]] = None
 ) -> None:
     con: sqlite3.Connection
     cur: sqlite3.Cursor

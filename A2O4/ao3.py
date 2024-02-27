@@ -61,8 +61,8 @@ def download_single_work(work: AO3.Work) -> tuple[Path, common.DB_Work]:
         work.id,
         title,
         authors,
-        work.metadata["parts_in_series"],
         series_list,
+        work.metadata["parts_in_series"],
         filtered_fandoms,
     )
     sqlite.add_work(db_work)
@@ -79,12 +79,12 @@ def download_series_and_sort(series: AO3.Series) -> tuple[Path, common.DB_Series
     name = common.sanitise_title(series.name)
     for work in series.work_list:
         work.reload(False)
-        authors: list[str] = []
+        work_authors: list[str] = []
         title = common.sanitise_title(work.title)
         print("Authors are:")
         for author in work.authors:
             print(f"\t{author.username}")
-            authors.append(author.username)
+            work_authors.append(author.username)
         series_list: list[common.DB_Series] = []
         series_index: int = 0
         for work_series, part in zip(work.series, work.metadata["parts_in_series"]):
@@ -116,9 +116,9 @@ def download_series_and_sort(series: AO3.Series) -> tuple[Path, common.DB_Series
                 common.DB_Work(
                     work.id,
                     title,
-                    authors,
-                    work.metadata["parts_in_series"],
+                    work_authors,
                     series_list,
+                    work.metadata["parts_in_series"],
                     filtered_fandoms,
                 )
             )
