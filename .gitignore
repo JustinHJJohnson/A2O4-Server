@@ -4,3 +4,5 @@ test.toml
 log.txt
 a.py
 db.sqlite
+.ruff_cache
+.mypy_cache

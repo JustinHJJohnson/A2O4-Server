@@ -20,3 +20,16 @@ test = [
 extend-exclude = [
     "__init__.py",
 ]
+
+[tool.pyright]
+include = ["A2O4", "api.py"]
+exclude = [
+    "**/node_modules",
+    "**/__pycache__"
+]
+
+reportMissingImports = true
+reportMissingTypeStubs = true
+
+pythonVersion = "3.12"
+pythonPlatform = "Linux"
