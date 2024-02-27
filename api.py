@@ -28,18 +28,20 @@ def download_work_or_series():
                 work = ao3.download_work(int(results[1]))
             except AO3.utils.InvalidIdError:
                 return f"Could not find a work with the id {results[1]}", 400
-            response_message = f"Successfully downloaded work {work.title}"
-            if (work.series):
-                response_message += f", part of series {work.series[0]}"
-            response_message += f"\nin fandom(s): {ao3.map_and_filter_fandoms(work.fandoms)}"
-            return response_message, 200
+            else:
+                response_message = f"Successfully downloaded work {work.title}"
+                if (work.series_list):
+                    response_message += f", part(s) {work.parts} of series {work.series_list}"
+                response_message += f"\nin fandom(s): {ao3.map_and_filter_fandoms(work.fandoms)}"
+                return response_message, 200
         elif (results[0] == "series"):
             print(f"Series with the ID: {results[1]}")
             try:
                 series = ao3.download_series(int(results[1]))
             except AO3.utils.InvalidIdError:
                 return f"Could not find a series with the id {results[1]}", 400
-            return f"Successfully downloaded series {series.name}\nin fandom(s): {ao3.map_and_filter_fandoms(work.fandoms)}", 200
+            else:
+                return f"Successfully downloaded series {series.title}\nin fandom(s): {ao3.map_and_filter_fandoms(series.fandoms)}", 200
         
 @app.route('/delete/<string:type>/<string:id>', methods=['DELETE'])
 def delete_work_or_series(type: str, id: str):

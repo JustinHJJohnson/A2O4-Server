@@ -80,7 +80,6 @@ def add_series(series: common.DB_Series, works: list[common.DB_Work], con_cur: t
         (con, cur) = con_cur
     else:
         (con, cur) = connect_to_db()
-    #currentDateTime = date.today().isoformat()
 
     fandom_rows: list[tuple[str]] = []
     author_rows: list[tuple[str]] = []
