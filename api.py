@@ -1,9 +1,11 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
 import re
-import paramiko
-from A2O4 import sqlite, ao3, config
+
 import AO3T as AO3
+import paramiko
+from flask import Flask, jsonify, request
+from flask_cors import CORS
+
+from A2O4 import ao3, config, sqlite
 
 host = "192.168.1.2"
 app = Flask(__name__)

@@ -1,8 +1,9 @@
+from pathlib import Path
+
 import AO3T as AO3
 
 # import AO3
-from . import kindle, common, sqlite, config
-from pathlib import Path
+from . import common, config, kindle, sqlite
 
 
 def map_and_filter_fandoms(fandoms: list[str]) -> list[str]:

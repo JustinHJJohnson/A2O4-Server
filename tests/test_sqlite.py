@@ -1,8 +1,10 @@
 import sqlite3
 import unittest
-from mock import patch
 from datetime import date
-from A2O4 import sqlite, common
+
+from mock import patch
+
+from A2O4 import common, sqlite
 
 
 def setup_db(path_to_fixture: str = None) -> tuple[sqlite3.Connection, sqlite3.Cursor]:

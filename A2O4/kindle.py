@@ -1,8 +1,10 @@
-import paramiko
 import os
 import stat
 from pathlib import Path
-from . import common, sqlite, config
+
+import paramiko
+
+from . import common, config, sqlite
 
 
 # Stolen from https://stackoverflow.com/questions/4409502/directory-transfers-with-paramiko

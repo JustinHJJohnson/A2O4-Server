@@ -11,6 +11,11 @@ dependencies = [
   "toml>=0.10.2",
 ]
 
+[project.optional-dependencies]
+test = [
+    "ruff>=0.2.2",
+]
+
 [tool.ruff]
 extend-exclude = [
     "__init__.py",
