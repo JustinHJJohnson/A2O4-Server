@@ -223,8 +223,16 @@ def get_work(
     return common.DB_Work(id, work_name, authors, parts, full_series, fandoms)
 
 
-def get_series(id: int) -> common.DB_Series:
-    (con, cur) = connect_to_db()
+def get_series(
+    id: int, con_cur: tuple[sqlite3.Connection, sqlite3.Cursor] = None
+) -> common.DB_Series:
+    con: sqlite3.Connection
+    cur: sqlite3.Cursor
+
+    if con_cur:
+        (con, cur) = con_cur
+    else:
+        (con, cur) = connect_to_db()
 
     name = cur.execute("SELECT name FROM series WHERE id = ?", (id,)).fetchone()[0]
     authors = list(
@@ -250,6 +258,8 @@ def get_series(id: int) -> common.DB_Series:
         )
     )
 
+    if not con_cur:
+        con.close()
     return common.DB_Series(id, name, authors, fandoms)
 
 
