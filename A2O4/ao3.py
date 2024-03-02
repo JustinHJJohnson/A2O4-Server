@@ -65,7 +65,8 @@ def download_single_work(work: AO3.Work) -> tuple[Path, common.DB_Work]:
         work.metadata["parts_in_series"],
         filtered_fandoms,
     )
-    sqlite.add_work(db_work)
+    with sqlite.Database() as db:
+        db.add_work(db_work)
     return (download_path, db_work)
 
 
@@ -126,7 +127,8 @@ def download_series_and_sort(series: AO3.Series) -> tuple[Path, common.DB_Series
     fandoms = map_and_filter_fandoms(fandoms)
     db_series = common.DB_Series(series.id, name, authors, fandoms)
     if db_works:
-        sqlite.add_series(db_series, db_works)
+        with sqlite.Database() as db:
+            db.add_series(db_series, db_works)
     return (download_path, db_series)
 
 
@@ -152,12 +154,14 @@ def download_series(id: int) -> common.DB_Series:
 
 # TODO think about these functions, wasteful to get the work/series from the database twice
 def delete_work(id: int) -> None:
-    sqlite.delete_work(id)
-    kindle.delete_work(sqlite.get_work(id))
+    with sqlite.Database() as db:
+        db.delete_work(id)
+        kindle.delete_work(db.get_work(id))
     return
 
 
 def delete_series(id: int) -> None:
-    sqlite.delete_series(id)
-    kindle.delete_series(sqlite.get_series(id))
+    with sqlite.Database() as db:
+        db.delete_series(id)
+        kindle.delete_series(db.get_series(id))
     return

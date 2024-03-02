@@ -118,7 +118,8 @@ def copy_work(local_path: Path, metadata: common.DB_Work) -> None:
     make_dirs_if_not_exist(sftp, remote_path)
     sftp.put(local_path.as_posix(), remote_path.as_posix())
     sftp.close()
-    sqlite.add_work_to_device(metadata.id, device_config.name)
+    with sqlite.Database() as db:
+        db.add_work_to_device(metadata.id, device_config.name)
 
 
 def copy_series(series_to_move: Path, metadata: common.DB_Series) -> None:
@@ -130,6 +131,8 @@ def copy_series(series_to_move: Path, metadata: common.DB_Series) -> None:
     make_dirs_if_not_exist(sftp, remote_path, True)
     sftp.put_dir(series_to_move.as_posix(), remote_path.as_posix())
     sftp.close()
+    with sqlite.Database() as db:
+        db.add_series_to_device(metadata.id, device_config.name)
     # TODO add series to device sql
 
 

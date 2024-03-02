@@ -6,3 +6,5 @@ a.py
 db.sqlite
 .ruff_cache
 .mypy_cache
+package.json
+package-lock.json
