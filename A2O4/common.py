@@ -30,24 +30,6 @@ class Device:
     download_folder: str
     uses_koreader: bool
 
-    def __init__(
-        self,
-        name: str,
-        ip: str,
-        port: int,
-        username: str,
-        password: str,
-        download_folder: str,
-        uses_KOReader: bool,
-    ) -> None:
-        self.name: str = name
-        self.ip: str = ip
-        self.port: int = port
-        self.username: str = username
-        self.password: str = password
-        self.download_folder: str = download_folder
-        self.uses_koreader: bool = uses_KOReader
-
 
 def sanitise_title(title: str) -> str:
     new_title = re.sub(r"/", " ", title)

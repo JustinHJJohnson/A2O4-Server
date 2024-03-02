@@ -1,8 +1,10 @@
 import toml
+from dataclasses import dataclass
 
 from . import common
 
 
+@dataclass
 class Config:
     def __init__(self, config: dict) -> None:
         self.download_path: str = config["download_path"]
@@ -13,26 +15,6 @@ class Config:
         )
         self.fandom_map: dict[str, str] = config["fandom_map"]
         self.fandom_filter: dict[str, list[str]] = config["fandom_filter"]
-
-    def __str__(self):
-        return f"""
-            download_path: {self.download_path}
-            ao3_username: {self.ao3_username}
-            ao3_password: {self.ao3_password}
-            devices: {self.devices}
-            fandom_map: {self.fandom_map}
-            fandom_filter: {self.fandom_filter}
-        """
-
-    def __repr__(self):
-        return f"""
-            download_path: {self.download_path}
-            ao3_username: {self.ao3_username}
-            ao3_password: {self.ao3_password}
-            devices: {self.devices}
-            fandom_map: {self.fandom_map}
-            fandom_filter: {self.fandom_filter}
-        """
 
     def to_json_dict(self):
         json_dict = self.__dict__
@@ -50,6 +32,5 @@ def get_config() -> Config:
 def update_config(new_config: Config) -> None:
     global config
     config = new_config
-    f = open("./test.toml", "w")
-    toml.dump(config.to_json_dict(), f)
-    f.close()
+    with open("./test.toml", "w") as f:
+        toml.dump(config.to_json_dict(), f)

@@ -13,7 +13,7 @@ port = 22
 username = "root"
 password = "root"
 download_folder = '/fanfics/sorted'
-uses_KOReader = true                    # KOReader generates a metadata folder that needs to be cleaned up on deletes
+uses_koreader = true                    # KOReader generates a metadata folder that needs to be cleaned up on deletes
 
 [[devices]]
 name = "Phone"
