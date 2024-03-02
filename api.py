@@ -20,7 +20,7 @@ def handle_bad_request(e) -> Response:
 
 @app.route("/download", methods=["POST"])
 def download_work_or_series() -> Response:
-    url = request.json["url"]
+    url = request.get_json()["url"]
     results = re.findall(r"(series|works)\/(\d{6,8})", url)[0]
     if len(results) != 2:
         return Response("Not a valid AO3 URL", 400)

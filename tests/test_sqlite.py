@@ -2,6 +2,8 @@ import sqlite3
 import unittest
 from datetime import date
 
+from typing import Optional
+
 from A2O4 import common, sqlite
 
 
@@ -11,7 +13,9 @@ class TestingDatabase(sqlite.Database):
         self.cur = cur
 
 
-def setup_db(path_to_fixture: str = None) -> tuple[sqlite3.Connection, sqlite3.Cursor]:
+def setup_db(
+    path_to_fixture: Optional[str] = None,
+) -> tuple[sqlite3.Connection, sqlite3.Cursor]:
     con = sqlite3.connect(":memory:")
     cursor = con.cursor()
     with open("database_setup.sql", "r") as base_db_setup:
