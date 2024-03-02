@@ -1,9 +1,10 @@
 from pathlib import Path
 
-import AO3T as AO3
+import AO3 as AO3
 
 # import AO3
-from . import common, config, kindle, sqlite
+from .sqlite import Database
+from . import common, config, kindle
 
 
 def map_and_filter_fandoms(fandoms: list[str]) -> list[str]:
@@ -65,7 +66,7 @@ def download_single_work(work: AO3.Work) -> tuple[Path, common.DB_Work]:
         work.metadata["parts_in_series"],
         filtered_fandoms,
     )
-    with sqlite.Database() as db:
+    with Database() as db:
         db.add_work(db_work)
     return (download_path, db_work)
 
@@ -127,7 +128,7 @@ def download_series_and_sort(series: AO3.Series) -> tuple[Path, common.DB_Series
     fandoms = map_and_filter_fandoms(fandoms)
     db_series = common.DB_Series(series.id, name, authors, fandoms)
     if db_works:
-        with sqlite.Database() as db:
+        with Database() as db:
             db.add_series(db_series, db_works)
     return (download_path, db_series)
 
@@ -154,7 +155,7 @@ def download_series(id: int) -> common.DB_Series:
 
 # TODO think about these functions, wasteful to get the work/series from the database twice
 def delete_work(id: int) -> bool:
-    with sqlite.Database() as db:
+    with Database() as db:
         work = db.get_work(id)
         if not work:
             return False
@@ -164,7 +165,7 @@ def delete_work(id: int) -> bool:
 
 
 def delete_series(id: int) -> bool:
-    with sqlite.Database() as db:
+    with Database() as db:
         series = db.get_series(id)
         if not series:
             return False

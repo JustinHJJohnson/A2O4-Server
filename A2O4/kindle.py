@@ -4,7 +4,8 @@ from pathlib import Path
 
 import paramiko
 
-from . import common, config, sqlite
+from .sqlite import Database
+from . import common, config
 
 
 # Stolen from https://stackoverflow.com/questions/4409502/directory-transfers-with-paramiko
@@ -118,7 +119,7 @@ def copy_work(local_path: Path, metadata: common.DB_Work) -> None:
     make_dirs_if_not_exist(sftp, remote_path)
     sftp.put(local_path.as_posix(), remote_path.as_posix())
     sftp.close()
-    with sqlite.Database() as db:
+    with Database() as db:
         db.add_work_to_device(metadata.id, device_config.name)
 
 
@@ -131,7 +132,7 @@ def copy_series(series_to_move: Path, metadata: common.DB_Series) -> None:
     make_dirs_if_not_exist(sftp, remote_path, True)
     sftp.put_dir(series_to_move.as_posix(), remote_path.as_posix())
     sftp.close()
-    with sqlite.Database() as db:
+    with Database() as db:
         db.add_series_to_device(metadata.id, device_config.name)
     # TODO add series to device sql
 
@@ -140,6 +141,7 @@ def delete_work(metadata: common.DB_Work) -> None:
     device_config = config.get_config().devices[0]
     sftp = establish_sftp_connection(device_config)
 
+    print(metadata)
     if metadata.series_list:
         for index, _ in enumerate(metadata.series_list):
             path = construct_path_for_work(

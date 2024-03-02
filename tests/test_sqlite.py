@@ -4,10 +4,11 @@ from datetime import date
 
 from typing import Optional
 
-from A2O4 import common, sqlite
+from A2O4.sqlite import Database
+from A2O4 import common
 
 
-class TestingDatabase(sqlite.Database):
+class TestingDatabase(Database):
     def __init__(self, con: sqlite3.Connection, cur: sqlite3.Cursor) -> None:
         self.con = con
         self.cur = cur
