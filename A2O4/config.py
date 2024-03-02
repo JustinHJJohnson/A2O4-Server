@@ -1,3 +1,4 @@
+from copy import copy
 import toml
 from dataclasses import dataclass
 
@@ -22,7 +23,7 @@ class Config:
         return json_dict
 
 
-config = Config(toml.load("./config.toml"))
+config: Config = Config(toml.load("./config.toml"))
 
 
 def get_config() -> Config:
@@ -33,4 +34,4 @@ def update_config(new_config: Config) -> None:
     global config
     config = new_config
     with open("./test.toml", "w") as f:
-        toml.dump(config.to_json_dict(), f)
+        toml.dump(copy(config).to_json_dict(), f)
