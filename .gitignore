@@ -8,3 +8,4 @@ db.sqlite
 .mypy_cache
 package.json
 package-lock.json
+*.egg-info

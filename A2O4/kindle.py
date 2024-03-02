@@ -141,7 +141,6 @@ def delete_work(metadata: common.DB_Work) -> None:
     device_config = config.get_config().devices[0]
     sftp = establish_sftp_connection(device_config)
 
-    print(metadata)
     if metadata.series_list:
         for index, _ in enumerate(metadata.series_list):
             path = construct_path_for_work(

@@ -198,8 +198,10 @@ class Database:
         full_series: list[common.DB_Series] = []
 
         for series in all_series:
-            full_series.append(self.get_series(series[0]))
-            parts.append(series[1])
+            db_series = self.get_series(series[0])
+            if db_series:
+                full_series.append(db_series)
+                parts.append(series[1])
 
         return common.DB_Work(id, work_name, authors, full_series, parts, fandoms)
 

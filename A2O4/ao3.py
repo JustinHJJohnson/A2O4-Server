@@ -1,8 +1,7 @@
 from pathlib import Path
 
-import AO3 as AO3
+import AO3
 
-# import AO3
 from .sqlite import Database
 from . import common, config, kindle
 

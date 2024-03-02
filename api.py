@@ -1,6 +1,6 @@
 import re
 
-import AO3T as AO3
+import AO3
 import paramiko
 from flask import Flask, jsonify, request, Response
 from flask_cors import CORS
