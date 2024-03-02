@@ -13,7 +13,7 @@ CORS(app)
 
 
 @app.errorhandler(paramiko.SSHException)
-def handle_bad_request(e) -> Response:
+def handle_paramiko_exception(e) -> Response:
     error_str = f"{e}. Make sure the device is turned on and connected to the network"
     return Response(error_str, 503)
 
@@ -57,17 +57,21 @@ def download_work_or_series() -> Response:
 
 @app.route("/delete/<string:type>/<string:id>", methods=["DELETE"])
 def delete_work_or_series(type: str, id: str) -> Response:
+    exists: bool
     if type != "series" and type != "work":
         return Response("Can only delete a series or a work", 400)
     if not re.fullmatch(r"(\d{6,8})", id):
         return Response("Not a valid id", 400)
     if type == "work":
         print("deleting work")
-        ao3.delete_work(int(id))
+        exists = ao3.delete_work(int(id))
     else:
         print("deleting series")
-        ao3.delete_series(int(id))
-    return Response(status=200)
+        exists = ao3.delete_series(int(id))
+    if exists:
+        return Response(status=200)
+    else:
+        return Response("Work is not in database", 400)
 
 
 @app.route("/config", methods=["GET", "PUT"])

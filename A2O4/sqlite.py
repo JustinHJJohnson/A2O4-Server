@@ -1,6 +1,7 @@
 import sqlite3
 from datetime import date
 from os.path import exists
+from typing import Optional
 
 from . import common
 
@@ -154,10 +155,15 @@ class Database:
 
         self.cur.execute("INSERT OR IGNORE INTO device VALUES (?)", (device,))
 
-    def get_work(self, id: int) -> common.DB_Work:
+    def get_work(self, id: int) -> Optional[common.DB_Work]:
         work_name = self.cur.execute(
             "SELECT name FROM work WHERE id = ?", (id,)
-        ).fetchone()[0]
+        ).fetchone()
+
+        if not work_name:
+            return None
+        else:
+            work_name = work_name[0]
 
         fandoms = list(
             set(
@@ -197,10 +203,16 @@ class Database:
 
         return common.DB_Work(id, work_name, authors, full_series, parts, fandoms)
 
-    def get_series(self, id: int) -> common.DB_Series:
+    def get_series(self, id: int) -> Optional[common.DB_Series]:
         name = self.cur.execute(
             "SELECT name FROM series WHERE id = ?", (id,)
-        ).fetchone()[0]
+        ).fetchone()
+
+        if not name:
+            return None
+        else:
+            name = name[0]
+
         authors = list(
             set(
                 map(

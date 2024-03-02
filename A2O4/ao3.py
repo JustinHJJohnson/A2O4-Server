@@ -153,15 +153,21 @@ def download_series(id: int) -> common.DB_Series:
 
 
 # TODO think about these functions, wasteful to get the work/series from the database twice
-def delete_work(id: int) -> None:
+def delete_work(id: int) -> bool:
     with sqlite.Database() as db:
+        work = db.get_work(id)
+        if not work:
+            return False
         db.delete_work(id)
-        kindle.delete_work(db.get_work(id))
-    return
+        kindle.delete_work(work)
+    return True
 
 
-def delete_series(id: int) -> None:
+def delete_series(id: int) -> bool:
     with sqlite.Database() as db:
+        series = db.get_series(id)
+        if not series:
+            return False
         db.delete_series(id)
-        kindle.delete_series(db.get_series(id))
-    return
+        kindle.delete_series(series)
+    return True
