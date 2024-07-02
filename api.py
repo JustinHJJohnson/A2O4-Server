@@ -78,6 +78,9 @@ def delete_work_or_series(type: str, id: str) -> Response:
 def get_or_update_config() -> Response:
     match request.method:
         case "GET":
+            if request.args.get('reload'):
+                print("reloading config")
+                config.reload_fandom_config()
             return jsonify(config.get_config().to_json_dict())
         case "PUT":
             json = request.json
