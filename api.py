@@ -21,7 +21,7 @@ def handle_paramiko_exception(e) -> Response:
 @app.route("/download", methods=["POST"])
 def download_work_or_series() -> Response:
     url = request.get_json()["url"]
-    results = re.findall(r"(series|works)\/(\d{6,8})", url)[0]
+    results = re.findall(r"(series|works)\/(\d+)", url)[0]
     if len(results) != 2:
         return Response("Not a valid AO3 URL", 400)
     elif results[0] == "works":
@@ -71,7 +71,7 @@ def delete_work_or_series(type: str, id: str) -> Response:
     if exists:
         return Response(status=200)
     else:
-        return Response("Work is not in database", 400)
+        return Response("Work/Series is not in database", 400)
 
 
 @app.route("/config", methods=["GET", "PUT"])
